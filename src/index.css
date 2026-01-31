@@ -2,96 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* CommitLog Design System
+   A calm, serious, builder-focused aesthetic
+   Deep teal/blue-black with soft cyan accents
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core surfaces - Deep blue-black */
+    --background: 210 25% 6%;
+    --foreground: 180 10% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Cards and elevated surfaces */
+    --card: 210 22% 8%;
+    --card-foreground: 180 10% 92%;
+    --card-hover: 210 20% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Popover/dropdown surfaces */
+    --popover: 210 22% 10%;
+    --popover-foreground: 180 10% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary accent - Soft teal/cyan */
+    --primary: 173 58% 45%;
+    --primary-foreground: 210 25% 6%;
+    --primary-hover: 173 58% 50%;
+    --primary-muted: 173 40% 20%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Subtle gray-teal */
+    --secondary: 200 15% 16%;
+    --secondary-foreground: 180 10% 85%;
+    --secondary-hover: 200 15% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted elements */
+    --muted: 210 15% 14%;
+    --muted-foreground: 200 10% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent for highlights */
+    --accent: 173 45% 25%;
+    --accent-foreground: 173 58% 70%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive actions */
+    --destructive: 0 50% 45%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and inputs */
+    --border: 210 15% 18%;
+    --input: 210 15% 12%;
+    --ring: 173 58% 45%;
 
+    /* Border radius */
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Success/engagement colors */
+    --success: 160 60% 40%;
+    --success-foreground: 160 60% 85%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Like color - warm but not dopamine */
+    --like: 350 50% 50%;
+    --like-foreground: 350 60% 85%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Relog color */
+    --relog: 173 58% 45%;
+    --relog-foreground: 173 58% 85%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 210 22% 7%;
+    --sidebar-foreground: 180 10% 85%;
+    --sidebar-primary: 173 58% 45%;
+    --sidebar-primary-foreground: 210 25% 6%;
+    --sidebar-accent: 210 15% 12%;
+    --sidebar-accent-foreground: 180 10% 92%;
+    --sidebar-border: 210 15% 15%;
+    --sidebar-ring: 173 58% 45%;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+  /* No light mode - CommitLog is dark only */
 }
 
 @layer base {
@@ -100,6 +85,142 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+@layer components {
+  /* Feed toggle styles */
+  .feed-toggle {
+    @apply inline-flex items-center gap-1 p-1 rounded-lg bg-muted;
+  }
+
+  .feed-toggle-item {
+    @apply px-4 py-2 text-sm font-medium rounded-md transition-all duration-200;
+    @apply text-muted-foreground hover:text-foreground;
+  }
+
+  .feed-toggle-item[data-state="active"] {
+    @apply bg-card text-primary shadow-sm;
+  }
+
+  /* Log card hover effect */
+  .log-card {
+    @apply transition-colors duration-150;
+  }
+
+  .log-card:hover {
+    background-color: hsl(var(--card-hover));
+  }
+
+  /* Action button styles */
+  .action-button {
+    @apply flex items-center gap-1.5 text-muted-foreground transition-colors duration-150;
+    @apply hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md px-2 py-1;
+  }
+
+  .action-button--like:hover,
+  .action-button--like[data-active="true"] {
+    @apply text-like;
+  }
+
+  .action-button--relog:hover,
+  .action-button--relog[data-active="true"] {
+    @apply text-relog;
+  }
+
+  .action-button--comment:hover {
+    @apply text-primary;
+  }
+
+  /* Streak badge */
+  .streak-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full;
+    @apply bg-primary-muted text-primary;
+  }
+
+  /* Profile avatar ring */
+  .avatar-ring {
+    @apply ring-2 ring-primary/30;
+  }
+
+  /* Subtle glow effect for primary elements */
+  .glow-primary {
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+  }
+}
+
+@layer utilities {
+  /* Text gradient utility */
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-foreground;
+  }
+
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slide up animation for new logs */
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Pulse for like animation */
+  .animate-like {
+    animation: likeScale 0.3s ease-out;
+  }
+
+  @keyframes likeScale {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 }
