@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CommentsSection } from "./CommentsSection";
+import { EditLogDialog } from "./EditLogDialog";
 
 interface LogCardProps {
   log: Log;
@@ -25,6 +26,7 @@ interface LogCardProps {
 export function LogCard({ log, onUpdate }: LogCardProps) {
   const { user } = useAuth();
   const [showComments, setShowComments] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [likesCount, setLikesCount] = useState(log.likes_count || 0);
   const [relogsCount, setRelogsCount] = useState(log.relogs_count || 0);
   const [hasLiked, setHasLiked] = useState(log.user_has_liked || false);
@@ -33,7 +35,7 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
 
   const isOwnLog = user?.id === log.user_id;
   const canEdit = isOwnLog && log.created_at && 
-    new Date().getTime() - new Date(log.created_at).getTime() < 10 * 60 * 1000; // 10 minutes
+    new Date().getTime() - new Date(log.created_at).getTime() < 20 * 60 * 1000; // 20 minutes
 
   const handleLike = async () => {
     if (!user) {
@@ -187,7 +189,10 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover border-border">
                   {canEdit && (
-                    <DropdownMenuItem className="cursor-pointer">
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => setShowEditDialog(true)}
+                    >
                       Edit
                     </DropdownMenuItem>
                   )}
@@ -207,6 +212,14 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
           )}
         </div>
       </div>
+
+      <EditLogDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        logId={log.id}
+        initialContent={log.content}
+        onSaved={onUpdate}
+      />
     </article>
   );
 }

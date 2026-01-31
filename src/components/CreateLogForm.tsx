@@ -97,7 +97,7 @@ export function CreateLogForm({ onLogCreated }: CreateLogFormProps) {
         onChange={(e) => setContent(e.target.value)}
         placeholder="What did you work on today?"
         className="min-h-[100px] bg-transparent border-0 resize-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 p-0"
-        maxLength={500}
+        maxLength={2000}
       />
 
       {imagePreview && (
@@ -129,7 +129,7 @@ export function CreateLogForm({ onLogCreated }: CreateLogFormProps) {
             <ImagePlus className="w-5 h-5" />
           </label>
           <span className="text-xs text-muted-foreground">
-            {content.length}/500
+            {content.length}/2000
           </span>
         </div>
 

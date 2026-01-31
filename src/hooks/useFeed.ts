@@ -36,6 +36,8 @@ export function useFeed(mode: FeedMode) {
           query = query.in("user_id", allIds);
         }
       }
+      // Suggested mode: Fair algorithm - purely chronological from all users
+      // All users get equal visibility, no algorithmic boosting
 
       const { data: logsData, error } = await query;
 
