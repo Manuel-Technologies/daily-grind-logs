@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, LogOut, User } from "lucide-react";
+import { Terminal, LogOut, User, Settings, Compass } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,34 +28,54 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.username || "User"} />
-                    <AvatarFallback className="bg-secondary text-secondary-foreground">
-                      {profile?.username?.charAt(0).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
-                <DropdownMenuItem asChild>
-                  <Link to={`/profile/${profile?.username}`} className="flex items-center gap-2 cursor-pointer">
-                    <User className="w-4 h-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem
-                  onClick={() => signOut()}
-                  className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+                <Link to="/discover" className="flex items-center gap-2">
+                  <Compass className="w-4 h-4" />
+                  <span>Discover</span>
+                </Link>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.username || "User"} />
+                      <AvatarFallback className="bg-secondary text-secondary-foreground">
+                        {profile?.username?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
+                  <DropdownMenuItem asChild>
+                    <Link to={`/profile/${profile?.username}`} className="flex items-center gap-2 cursor-pointer">
+                      <User className="w-4 h-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/discover" className="flex items-center gap-2 cursor-pointer sm:hidden">
+                      <Compass className="w-4 h-4" />
+                      <span>Discover</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuItem
+                    onClick={() => signOut()}
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <Button asChild variant="default" size="sm" className="bg-primary hover:bg-primary-hover text-primary-foreground">
               <Link to="/auth">Sign in</Link>

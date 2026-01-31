@@ -22,11 +22,11 @@
     --popover: 210 22% 10%;
     --popover-foreground: 180 10% 92%;
 
-    /* Primary accent - Soft teal/cyan */
-    --primary: 173 58% 45%;
-    --primary-foreground: 210 25% 6%;
-    --primary-hover: 173 58% 50%;
-    --primary-muted: 173 40% 20%;
+    /* Primary accent - Vibrant coral/orange */
+    --primary: 15 90% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 15 90% 60%;
+    --primary-muted: 15 50% 20%;
 
     /* Secondary - Subtle gray-teal */
     --secondary: 200 15% 16%;
@@ -38,8 +38,8 @@
     --muted-foreground: 200 10% 55%;
 
     /* Accent for highlights */
-    --accent: 173 45% 25%;
-    --accent-foreground: 173 58% 70%;
+    --accent: 15 45% 25%;
+    --accent-foreground: 15 90% 70%;
 
     /* Destructive actions */
     --destructive: 0 50% 45%;
@@ -48,7 +48,7 @@
     /* Borders and inputs */
     --border: 210 15% 18%;
     --input: 210 15% 12%;
-    --ring: 173 58% 45%;
+    --ring: 15 90% 55%;
 
     /* Border radius */
     --radius: 0.5rem;
@@ -62,18 +62,18 @@
     --like-foreground: 350 60% 85%;
 
     /* Relog color */
-    --relog: 173 58% 45%;
-    --relog-foreground: 173 58% 85%;
+    --relog: 160 60% 45%;
+    --relog-foreground: 160 60% 85%;
 
     /* Sidebar */
     --sidebar-background: 210 22% 7%;
     --sidebar-foreground: 180 10% 85%;
-    --sidebar-primary: 173 58% 45%;
-    --sidebar-primary-foreground: 210 25% 6%;
+    --sidebar-primary: 15 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 15% 12%;
     --sidebar-accent-foreground: 180 10% 92%;
     --sidebar-border: 210 15% 15%;
-    --sidebar-ring: 173 58% 45%;
+    --sidebar-ring: 15 90% 55%;
   }
 
   /* No light mode - CommitLog is dark only */
