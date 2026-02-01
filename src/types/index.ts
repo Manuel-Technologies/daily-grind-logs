@@ -17,6 +17,9 @@ export interface Log {
   created_at: string;
   updated_at: string;
   edited_at: string | null;
+  hidden_at?: string | null;
+  deleted_at?: string | null;
+  comments_locked?: boolean;
   profiles?: Profile;
   likes_count?: number;
   comments_count?: number;

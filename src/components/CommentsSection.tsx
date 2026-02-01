@@ -12,9 +12,10 @@ import { Link } from "react-router-dom";
 
 interface CommentsSectionProps {
   logId: string;
+  commentsLocked?: boolean;
 }
 
-export function CommentsSection({ logId }: CommentsSectionProps) {
+export function CommentsSection({ logId, commentsLocked = false }: CommentsSectionProps) {
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +85,11 @@ export function CommentsSection({ logId }: CommentsSectionProps) {
 
   return (
     <div className="mt-4 pt-4 border-t border-border">
-      {user && (
+      {commentsLocked ? (
+        <div className="mb-4 p-3 rounded-md bg-muted text-muted-foreground text-sm text-center">
+          Comments are locked on this post.
+        </div>
+      ) : user && (
         <form onSubmit={handleSubmit} className="mb-4">
           <Textarea
             value={newComment}
