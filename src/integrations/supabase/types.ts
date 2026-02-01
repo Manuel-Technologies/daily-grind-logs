@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: Database["public"]["Enums"]["admin_action_type"]
+          admin_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+          target_entity: string
+          target_id: string
+        }
+        Insert: {
+          action_type: Database["public"]["Enums"]["admin_action_type"]
+          admin_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_entity: string
+          target_id: string
+        }
+        Update: {
+          action_type?: Database["public"]["Enums"]["admin_action_type"]
+          admin_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_entity?: string
+          target_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -101,27 +134,36 @@ export type Database = {
       }
       logs: {
         Row: {
+          comments_locked: boolean
           content: string
           created_at: string
+          deleted_at: string | null
           edited_at: string | null
+          hidden_at: string | null
           id: string
           image_url: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          comments_locked?: boolean
           content: string
           created_at?: string
+          deleted_at?: string | null
           edited_at?: string | null
+          hidden_at?: string | null
           id?: string
           image_url?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          comments_locked?: boolean
           content?: string
           created_at?: string
+          deleted_at?: string | null
           edited_at?: string | null
+          hidden_at?: string | null
           id?: string
           image_url?: string | null
           updated_at?: string
@@ -136,6 +178,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          last_login_at: string | null
+          suspended_at: string | null
+          suspension_reason: string | null
           updated_at: string
           user_id: string
           username: string
@@ -146,6 +191,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          last_login_at?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id: string
           username: string
@@ -156,6 +204,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          last_login_at?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id?: string
           username?: string
@@ -191,15 +242,110 @@ export type Database = {
           },
         ]
       }
+      reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          log_id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          log_id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          log_id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reporter_id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      admin_action_type:
+        | "suspend_user"
+        | "unsuspend_user"
+        | "hide_post"
+        | "unhide_post"
+        | "soft_delete_post"
+        | "restore_post"
+        | "lock_comments"
+        | "unlock_comments"
+        | "resolve_report"
+        | "dismiss_report"
+        | "grant_role"
+        | "revoke_role"
+      app_role: "admin" | "moderator" | "user"
+      report_reason:
+        | "spam"
+        | "harassment"
+        | "inappropriate_content"
+        | "misinformation"
+        | "self_harm"
+        | "other"
+      report_status: "pending" | "resolved" | "dismissed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -326,6 +472,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      admin_action_type: [
+        "suspend_user",
+        "unsuspend_user",
+        "hide_post",
+        "unhide_post",
+        "soft_delete_post",
+        "restore_post",
+        "lock_comments",
+        "unlock_comments",
+        "resolve_report",
+        "dismiss_report",
+        "grant_role",
+        "revoke_role",
+      ],
+      app_role: ["admin", "moderator", "user"],
+      report_reason: [
+        "spam",
+        "harassment",
+        "inappropriate_content",
+        "misinformation",
+        "self_harm",
+        "other",
+      ],
+      report_status: ["pending", "resolved", "dismissed"],
+    },
   },
 } as const

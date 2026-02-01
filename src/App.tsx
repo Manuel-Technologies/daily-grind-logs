@@ -11,6 +11,12 @@ import Profile from "./pages/Profile";
 import Discover from "./pages/Discover";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminContent from "./pages/admin/AdminContent";
+import AdminReports from "./pages/admin/AdminReports";
+import AdminAudit from "./pages/admin/AdminAudit";
+import { AdminRoute } from "@/components/admin/AdminRoute";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -65,6 +71,13 @@ function AppRoutes() {
       <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      
+      {/* Admin routes */}
+      <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute>} />
+      <Route path="/admin/content" element={<ProtectedRoute><AdminRoute><AdminContent /></AdminRoute></ProtectedRoute>} />
+      <Route path="/admin/reports" element={<ProtectedRoute><AdminRoute><AdminReports /></AdminRoute></ProtectedRoute>} />
+      <Route path="/admin/audit" element={<ProtectedRoute><AdminRoute><AdminAudit /></AdminRoute></ProtectedRoute>} />
       
       {/* Catch-all */}
       <Route path="*" element={<NotFound />} />

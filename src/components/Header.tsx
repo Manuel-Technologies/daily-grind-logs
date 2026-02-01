@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { Terminal, LogOut, User, Settings, Compass } from "lucide-react";
+import { Terminal, LogOut, User, Settings, Compass, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminRole } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import { useProfile } from "@/hooks/useProfile";
 export function Header() {
   const { user, signOut } = useAuth();
   const { profile } = useProfile(user?.id);
+  const { isAdmin } = useAdminRole();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -65,6 +67,14 @@ export function Header() {
                       <span>Settings</span>
                     </Link>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                        <Shield className="w-4 h-4" />
+                        <span>Admin</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="bg-border" />
                   <DropdownMenuItem
                     onClick={() => signOut()}

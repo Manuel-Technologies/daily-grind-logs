@@ -7,16 +7,18 @@ import { Log } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Repeat2, MoreHorizontal, Pencil } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, MoreHorizontal, Pencil, Flag } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CommentsSection } from "./CommentsSection";
 import { EditLogDialog } from "./EditLogDialog";
+import { ReportDialog } from "./ReportDialog";
 
 interface LogCardProps {
   log: Log;
@@ -27,6 +29,7 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
   const { user } = useAuth();
   const [showComments, setShowComments] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const [likesCount, setLikesCount] = useState(log.likes_count || 0);
   const [relogsCount, setRelogsCount] = useState(log.relogs_count || 0);
   const [hasLiked, setHasLiked] = useState(log.user_has_liked || false);
@@ -180,35 +183,47 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
               <span>{likesCount}</span>
             </button>
 
-            {isOwnLog && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover border-border">
-                  {canEdit && (
-                    <DropdownMenuItem 
-                      className="cursor-pointer"
-                      onClick={() => setShowEditDialog(true)}
-                    >
-                      Edit
-                    </DropdownMenuItem>
-                  )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover border-border">
+                {isOwnLog && canEdit && (
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={() => setShowEditDialog(true)}
+                  >
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {isOwnLog && (
                   <DropdownMenuItem
                     onClick={handleDelete}
                     className="cursor-pointer text-destructive focus:text-destructive"
                   >
                     Delete
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                )}
+                {!isOwnLog && (
+                  <>
+                    {isOwnLog && <DropdownMenuSeparator />}
+                    <DropdownMenuItem
+                      onClick={() => setShowReportDialog(true)}
+                      className="cursor-pointer"
+                    >
+                      <Flag className="w-4 h-4 mr-2" />
+                      Report
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {showComments && (
-            <CommentsSection logId={log.id} />
+            <CommentsSection logId={log.id} commentsLocked={log.comments_locked} />
           )}
         </div>
       </div>
@@ -219,6 +234,12 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
         logId={log.id}
         initialContent={log.content}
         onSaved={onUpdate}
+      />
+
+      <ReportDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        logId={log.id}
       />
     </article>
   );

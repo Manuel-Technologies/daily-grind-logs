@@ -17,6 +17,8 @@ export function useFeed(mode: FeedMode) {
       let query = supabase
         .from("logs")
         .select("*")
+        .is("hidden_at", null)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(50);
 
