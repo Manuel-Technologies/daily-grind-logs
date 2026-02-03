@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ImagePlus, X, Loader2 } from "lucide-react";
+import { Log } from "@/types";
 
 interface CreateLogFormProps {
   onLogCreated: () => void;
+  onOptimisticAdd?: (log: Log) => void;
 }
 
-export function CreateLogForm({ onLogCreated }: CreateLogFormProps) {
+export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormProps) {
   const { user } = useAuth();
+  const { profile } = useProfile(user?.id);
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -41,18 +45,49 @@ export function CreateLogForm({ onLogCreated }: CreateLogFormProps) {
     e.preventDefault();
     if (!user || !content.trim()) return;
 
+    const trimmedContent = content.trim();
+    
+    // Create optimistic log immediately
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticLog: Log = {
+      id: optimisticId,
+      user_id: user.id,
+      content: trimmedContent,
+      image_url: imagePreview, // Show local preview
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      edited_at: null,
+      profiles: profile || undefined,
+      likes_count: 0,
+      comments_count: 0,
+      relogs_count: 0,
+      user_has_liked: false,
+      user_has_relogged: false,
+    };
+
+    // Add optimistically to feed
+    if (onOptimisticAdd) {
+      onOptimisticAdd(optimisticLog);
+    }
+
+    // Clear form immediately for better UX
+    setContent("");
+    const hadImage = !!imageFile;
+    const imageToUpload = imageFile;
+    removeImage();
+
     setLoading(true);
 
     try {
       let imageUrl = null;
 
-      if (imageFile) {
-        const fileExt = imageFile.name.split(".").pop();
+      if (hadImage && imageToUpload) {
+        const fileExt = imageToUpload.name.split(".").pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-        const { error: uploadError, data } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("log-images")
-          .upload(fileName, imageFile);
+          .upload(fileName, imageToUpload);
 
         if (uploadError) throw uploadError;
 
@@ -65,18 +100,18 @@ export function CreateLogForm({ onLogCreated }: CreateLogFormProps) {
 
       const { error } = await supabase.from("logs").insert({
         user_id: user.id,
-        content: content.trim(),
+        content: trimmedContent,
         image_url: imageUrl,
       });
 
       if (error) throw error;
 
-      setContent("");
-      removeImage();
       toast.success("Log posted!");
+      // Refetch to get the real data (with proper ID, image URL, etc.)
       onLogCreated();
     } catch (error: any) {
       toast.error(error.message || "Failed to post log");
+      // Could restore the form content here if needed
     } finally {
       setLoading(false);
     }
