@@ -3,14 +3,36 @@ import { Header } from "@/components/Header";
 import { CreateLogForm } from "@/components/CreateLogForm";
 import { LogCard } from "@/components/LogCard";
 import { FeedToggle } from "@/components/FeedToggle";
-import { useFeed, FeedMode } from "@/hooks/useFeed";
+import { FeedSkeleton } from "@/components/LogCardSkeleton";
+import { useFeedQuery, FeedMode } from "@/hooks/useFeedQuery";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Index() {
   const { loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState<FeedMode>("suggested");
-  const { logs, loading, refetch } = useFeed(feedMode);
+  
+  const { 
+    logs, 
+    loading, 
+    isFetchingNextPage,
+    hasNextPage, 
+    fetchNextPage,
+    invalidateFeed,
+    addOptimisticLog,
+  } = useFeedQuery(feedMode);
+
+  // Scroll restoration
+  useScrollRestoration("feed");
+
+  // Infinite scroll
+  const { sentinelRef } = useInfiniteScroll({
+    onLoadMore: fetchNextPage,
+    hasMore: !!hasNextPage,
+    isLoading: isFetchingNextPage,
+  });
 
   if (authLoading) {
     return (
@@ -27,7 +49,10 @@ export default function Index() {
       <main className="container max-w-2xl py-6">
         {/* Create log form */}
         <div className="mb-6">
-          <CreateLogForm onLogCreated={refetch} />
+          <CreateLogForm 
+            onLogCreated={invalidateFeed} 
+            onOptimisticAdd={addOptimisticLog}
+          />
         </div>
 
         {/* Feed toggle */}
@@ -39,9 +64,7 @@ export default function Index() {
         {/* Feed */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
+            <FeedSkeleton count={5} />
           ) : logs.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
@@ -51,9 +74,28 @@ export default function Index() {
               </p>
             </div>
           ) : (
-            logs.map((log) => (
-              <LogCard key={log.id} log={log} onUpdate={refetch} />
-            ))
+            <>
+              {logs.map((log) => (
+                <LogCard key={log.id} log={log} onUpdate={invalidateFeed} />
+              ))}
+              
+              {/* Infinite scroll sentinel */}
+              <div ref={sentinelRef} className="h-1" />
+              
+              {/* Loading more indicator */}
+              {isFetchingNextPage && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              
+              {/* End of feed indicator */}
+              {!hasNextPage && logs.length > 0 && (
+                <div className="text-center py-6 text-sm text-muted-foreground">
+                  You've reached the end of the feed
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
