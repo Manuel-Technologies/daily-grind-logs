@@ -126,6 +126,12 @@ export default function ProfilePage() {
         follower_id: user.id,
         following_id: profile.user_id,
       });
+      // Create notification for the followed user
+      supabase.from("notifications").insert({
+        user_id: profile.user_id,
+        actor_id: user.id,
+        type: "follow",
+      }).then(() => {});
       setIsFollowing(true);
       setFollowersCount(prev => prev + 1);
       toast.success(`Following @${profile.username}`);

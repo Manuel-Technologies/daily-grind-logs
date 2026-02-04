@@ -3,10 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ImagePlus, X, Loader2 } from "lucide-react";
 import { Log } from "@/types";
+import { MentionInput } from "./MentionInput";
 
 interface CreateLogFormProps {
   onLogCreated: () => void;
@@ -98,13 +98,44 @@ export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormPr
         imageUrl = publicUrl;
       }
 
-      const { error } = await supabase.from("logs").insert({
+      const { data: logData, error } = await supabase.from("logs").insert({
         user_id: user.id,
         content: trimmedContent,
         image_url: imageUrl,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Extract mentions and create notifications
+      const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+      const mentions = trimmedContent.match(mentionRegex);
+      
+      if (mentions && logData) {
+        const usernames = mentions.map(m => m.slice(1));
+        const { data: mentionedUsers } = await supabase
+          .from("profiles")
+          .select("user_id, username")
+          .in("username", usernames);
+
+        if (mentionedUsers) {
+          for (const mentionedUser of mentionedUsers) {
+            if (mentionedUser.user_id !== user.id) {
+              // Create mention record
+              await supabase.from("mentions").insert({
+                log_id: logData.id,
+                user_id: mentionedUser.user_id,
+              });
+              // Create notification
+              await supabase.from("notifications").insert({
+                user_id: mentionedUser.user_id,
+                actor_id: user.id,
+                type: "mention",
+                log_id: logData.id,
+              });
+            }
+          }
+        }
+      }
 
       toast.success("Log posted!");
       // Refetch to get the real data (with proper ID, image URL, etc.)
@@ -127,12 +158,10 @@ export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormPr
 
   return (
     <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-4">
-      <Textarea
+      <MentionInput
         value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="What did you work on today?"
-        className="min-h-[100px] bg-transparent border-0 resize-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 p-0"
-        maxLength={2000}
+        onChange={setContent}
+        placeholder="What did you work on today? Use @ to mention others..."
       />
 
       {imagePreview && (
@@ -164,7 +193,7 @@ export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormPr
             <ImagePlus className="w-5 h-5" />
           </label>
           <span className="text-xs text-muted-foreground">
-            {content.length}/2000
+            {content.length.toLocaleString()} chars
           </span>
         </div>
 
