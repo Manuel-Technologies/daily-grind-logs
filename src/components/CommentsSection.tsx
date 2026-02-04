@@ -58,6 +58,13 @@ export function CommentsSection({ logId, commentsLocked = false }: CommentsSecti
 
     setSubmitting(true);
 
+    // First get log author to send notification
+    const { data: logData } = await supabase
+      .from("logs")
+      .select("user_id")
+      .eq("id", logId)
+      .maybeSingle();
+
     const { error } = await supabase.from("comments").insert({
       log_id: logId,
       user_id: user.id,
@@ -67,6 +74,15 @@ export function CommentsSection({ logId, commentsLocked = false }: CommentsSecti
     if (error) {
       toast.error("Failed to post comment");
     } else {
+      // Send notification to log author (not self)
+      if (logData && logData.user_id !== user.id) {
+        supabase.from("notifications").insert({
+          user_id: logData.user_id,
+          actor_id: user.id,
+          type: "comment",
+          log_id: logId,
+        }).then(() => {});
+      }
       setNewComment("");
       fetchComments();
     }

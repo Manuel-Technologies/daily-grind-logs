@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Log, Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCallback } from "react";
+import { sortLogsByScore } from "@/lib/feedScoring";
 
 export type FeedMode = "following" | "suggested";
 
@@ -18,13 +19,42 @@ async function fetchLogsPage(
   userId: string | null,
   cursor: string | null
 ): Promise<FeedPage> {
+  // Get following IDs first (needed for both feed modes for scoring)
+  let followingIds: string[] = [];
+  let recentInteractedAuthorIds: string[] = [];
+  
+  if (userId) {
+    const { data: followingData } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", userId);
+    followingIds = followingData?.map(f => f.following_id) || [];
+
+    // Get recently interacted authors (liked/commented in last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentLikes } = await supabase
+      .from("likes")
+      .select("log_id")
+      .eq("user_id", userId)
+      .gte("created_at", sevenDaysAgo);
+    
+    if (recentLikes && recentLikes.length > 0) {
+      const likedLogIds = recentLikes.map(l => l.log_id);
+      const { data: likedLogs } = await supabase
+        .from("logs")
+        .select("user_id")
+        .in("id", likedLogIds);
+      recentInteractedAuthorIds = [...new Set(likedLogs?.map(l => l.user_id) || [])];
+    }
+  }
+
   let query = supabase
     .from("logs")
     .select("*")
     .is("hidden_at", null)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
-    .limit(PAGE_SIZE);
+    .limit(PAGE_SIZE * 3); // Fetch more for scoring/ranking
 
   // Apply cursor for pagination
   if (cursor) {
@@ -32,15 +62,7 @@ async function fetchLogsPage(
   }
 
   if (mode === "following" && userId) {
-    // Get following IDs
-    const { data: followingData } = await supabase
-      .from("follows")
-      .select("following_id")
-      .eq("follower_id", userId);
-
-    const followingIds = followingData?.map(f => f.following_id) || [];
     const allIds = [...followingIds, userId];
-    
     if (allIds.length > 0) {
       query = query.in("user_id", allIds);
     }
@@ -102,7 +124,14 @@ async function fetchLogsPage(
     userRelogs = new Set((userRelogsRes.data || []).map(r => r.log_id));
   }
 
-  const logs: Log[] = logsData.map(log => ({
+  // Build author post counts for credibility scoring
+  const authorPostCounts = new Map<string, number>();
+  userIds.forEach(uid => {
+    const count = logsData.filter(l => l.user_id === uid).length;
+    authorPostCounts.set(uid, count);
+  });
+
+  let logs: Log[] = logsData.map(log => ({
     ...log,
     profiles: profilesMap.get(log.user_id) as Profile,
     likes_count: likesCount.get(log.id) || 0,
@@ -112,12 +141,40 @@ async function fetchLogsPage(
     user_has_relogged: userRelogs.has(log.id),
   }));
 
-  // Next cursor is the created_at of the last log
-  const nextCursor = logsData.length === PAGE_SIZE 
+  // Apply scoring algorithm for suggested feed
+  if (mode === "suggested") {
+    const followingSet = new Set(followingIds);
+    const recentInteractedSet = new Set(recentInteractedAuthorIds);
+    
+    const scoredLogs = sortLogsByScore(
+      logs.map(l => ({
+        id: l.id,
+        user_id: l.user_id,
+        created_at: l.created_at,
+        likes_count: l.likes_count || 0,
+        comments_count: l.comments_count || 0,
+        relogs_count: l.relogs_count || 0,
+      })),
+      userId,
+      followingSet,
+      recentInteractedSet,
+      authorPostCounts
+    );
+
+    // Reorder logs based on scoring
+    const logMap = new Map(logs.map(l => [l.id, l]));
+    logs = scoredLogs.map(sl => logMap.get(sl.id)!).filter(Boolean);
+  }
+
+  // Take only PAGE_SIZE for the actual page
+  const pagedLogs = logs.slice(0, PAGE_SIZE);
+  
+  // Next cursor is the created_at of the last log in original data
+  const nextCursor = logsData.length >= PAGE_SIZE 
     ? logsData[logsData.length - 1].created_at 
     : null;
 
-  return { logs, nextCursor };
+  return { logs: pagedLogs, nextCursor };
 }
 
 export function useFeedQuery(mode: FeedMode) {

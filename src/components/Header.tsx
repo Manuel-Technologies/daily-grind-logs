@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/useProfile";
+import { NotificationButton } from "./NotificationButton";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -37,6 +38,7 @@ export function Header() {
                   <span>Discover</span>
                 </Link>
               </Button>
+              <NotificationButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">

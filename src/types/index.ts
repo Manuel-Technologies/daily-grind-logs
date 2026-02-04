@@ -61,3 +61,20 @@ export interface Follow {
   following_id: string;
   created_at: string;
 }
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  type: 'like' | 'comment' | 'relog' | 'follow' | 'mention';
+  log_id: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface Mention {
+  id: string;
+  log_id: string;
+  user_id: string;
+  created_at: string;
+}

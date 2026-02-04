@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils";
 import { CommentsSection } from "./CommentsSection";
 import { EditLogDialog } from "./EditLogDialog";
 import { ReportDialog } from "./ReportDialog";
+import { ImageModal } from "./ImageModal";
+import { RichContent } from "./RichContent";
 
 interface LogCardProps {
   log: Log;
@@ -30,6 +32,7 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
   const [likesCount, setLikesCount] = useState(log.likes_count || 0);
   const [relogsCount, setRelogsCount] = useState(log.relogs_count || 0);
   const [hasLiked, setHasLiked] = useState(log.user_has_liked || false);
@@ -55,6 +58,15 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
       await supabase.from("likes").delete().eq("log_id", log.id).eq("user_id", user.id);
     } else {
       setHasLiked(true);
+      // Create notification for log owner (not self)
+      if (log.user_id !== user.id) {
+        supabase.from("notifications").insert({
+          user_id: log.user_id,
+          actor_id: user.id,
+          type: "like",
+          log_id: log.id,
+        }).then(() => {});
+      }
       setLikesCount(prev => prev + 1);
       await supabase.from("likes").insert({ log_id: log.id, user_id: user.id });
     }
@@ -79,6 +91,15 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
     } else {
       setHasRelogged(true);
       setRelogsCount(prev => prev + 1);
+      // Create notification for log owner (not self)
+      if (log.user_id !== user.id) {
+        supabase.from("notifications").insert({
+          user_id: log.user_id,
+          actor_id: user.id,
+          type: "relog",
+          log_id: log.id,
+        }).then(() => {});
+      }
       await supabase.from("relogs").insert({ log_id: log.id, user_id: user.id });
       toast.success("Relogged!");
     }
@@ -134,16 +155,17 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
             )}
           </div>
 
-          <p className="mt-2 text-foreground whitespace-pre-wrap break-words">
-            {log.content}
-          </p>
+          <div className="mt-2 text-foreground whitespace-pre-wrap break-words">
+            <RichContent content={log.content} />
+          </div>
 
           {log.image_url && (
             <div className="mt-3">
               <img
                 src={log.image_url}
                 alt="Log attachment"
-                className="rounded-xl max-h-96 object-cover border border-border"
+                className="rounded-xl max-h-96 object-cover border border-border cursor-pointer hover:opacity-95 transition-opacity"
+                onClick={() => setShowImageModal(true)}
               />
             </div>
           )}
@@ -240,6 +262,12 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
         open={showReportDialog}
         onOpenChange={setShowReportDialog}
         logId={log.id}
+      />
+
+      <ImageModal
+        imageUrl={log.image_url}
+        open={showImageModal}
+        onOpenChange={setShowImageModal}
       />
     </article>
   );
