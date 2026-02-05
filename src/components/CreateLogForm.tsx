@@ -21,17 +21,59 @@ export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormPr
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image must be less than 5MB");
-        return;
-      }
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
+   const compressImage = async (file: File): Promise<File> => {
+     return new Promise((resolve, reject) => {
+       const canvas = document.createElement("canvas");
+       const ctx = canvas.getContext("2d");
+       const img = new Image();
+ 
+       img.onload = () => {
+         let { width, height } = img;
+         const maxSize = 2048;
+ 
+         if (width > maxSize || height > maxSize) {
+           if (width > height) {
+             height = (height / width) * maxSize;
+             width = maxSize;
+           } else {
+             width = (width / height) * maxSize;
+             height = maxSize;
+           }
+         }
+ 
+         canvas.width = width;
+         canvas.height = height;
+         ctx?.drawImage(img, 0, 0, width, height);
+ 
+         canvas.toBlob(
+           (blob) => {
+             if (blob) {
+               resolve(new File([blob], file.name, { type: "image/jpeg" }));
+             } else {
+               reject(new Error("Failed to compress image"));
+             }
+           },
+           "image/jpeg",
+           0.85
+         );
+       };
+ 
+       img.onerror = () => reject(new Error("Failed to load image"));
+       img.src = URL.createObjectURL(file);
+     });
+   };
+ 
+   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0];
+     if (file) {
+       if (file.size > 5 * 1024 * 1024) {
+         toast.error("Image must be less than 5MB");
+         return;
+       }
+       setImageFile(file);
+       setImagePreview(URL.createObjectURL(file));
+     }
+   };
 
   const removeImage = () => {
     setImageFile(null);
@@ -82,12 +124,22 @@ export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormPr
       let imageUrl = null;
 
       if (hadImage && imageToUpload) {
-        const fileExt = imageToUpload.name.split(".").pop();
+         // Compress image if needed
+         let fileToUpload = imageToUpload;
+         try {
+           if (imageToUpload.size > 1 * 1024 * 1024) {
+             fileToUpload = await compressImage(imageToUpload);
+           }
+         } catch (err) {
+           console.warn("Image compression failed, using original");
+         }
+ 
+         const fileExt = fileToUpload.name.split(".").pop() || "jpg";
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("log-images")
-          .upload(fileName, imageToUpload);
+           .upload(fileName, fileToUpload);
 
         if (uploadError) throw uploadError;
 

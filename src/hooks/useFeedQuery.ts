@@ -221,6 +221,7 @@ export function useFeedQuery(mode: FeedMode) {
   return {
     logs,
     loading: query.isLoading,
+     isRefetching: query.isRefetching,
     isFetchingNextPage: query.isFetchingNextPage,
     hasNextPage: query.hasNextPage,
     fetchNextPage: query.fetchNextPage,

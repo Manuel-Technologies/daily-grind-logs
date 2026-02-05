@@ -53,6 +53,7 @@ export type Database = {
           created_at: string
           id: string
           log_id: string
+          parent_id: string | null
           updated_at: string
           user_id: string
         }
@@ -61,6 +62,7 @@ export type Database = {
           created_at?: string
           id?: string
           log_id: string
+          parent_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -69,6 +71,7 @@ export type Database = {
           created_at?: string
           id?: string
           log_id?: string
+          parent_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -78,6 +81,13 @@ export type Database = {
             columns: ["log_id"]
             isOneToOne: false
             referencedRelation: "logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
             referencedColumns: ["id"]
           },
         ]
@@ -246,6 +256,7 @@ export type Database = {
           display_name: string | null
           id: string
           last_login_at: string | null
+          profile_completed: boolean
           suspended_at: string | null
           suspension_reason: string | null
           updated_at: string
@@ -259,6 +270,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           last_login_at?: string | null
+          profile_completed?: boolean
           suspended_at?: string | null
           suspension_reason?: string | null
           updated_at?: string
@@ -272,6 +284,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           last_login_at?: string | null
+          profile_completed?: boolean
           suspended_at?: string | null
           suspension_reason?: string | null
           updated_at?: string
