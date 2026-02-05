@@ -18,6 +18,8 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminAudit from "./pages/admin/AdminAudit";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { Loader2 } from "lucide-react";
+ import PostDetail from "./pages/PostDetail";
+ import CompleteProfile from "./pages/CompleteProfile";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +73,8 @@ function AppRoutes() {
       <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+       <Route path="/post/:logId" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
+       <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
       
       {/* Admin routes */}
       <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />

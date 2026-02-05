@@ -21,14 +21,17 @@ import { EditLogDialog } from "./EditLogDialog";
 import { ReportDialog } from "./ReportDialog";
 import { ImageModal } from "./ImageModal";
 import { RichContent } from "./RichContent";
+ import { useNavigate } from "react-router-dom";
 
 interface LogCardProps {
   log: Log;
   onUpdate: () => void;
+   showFullComments?: boolean;
 }
 
-export function LogCard({ log, onUpdate }: LogCardProps) {
+ export function LogCard({ log, onUpdate, showFullComments = false }: LogCardProps) {
   const { user } = useAuth();
+   const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -117,8 +120,30 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
     }
   };
 
+   const handleCardClick = (e: React.MouseEvent) => {
+     // Don't navigate if clicking on interactive elements
+     const target = e.target as HTMLElement;
+     if (
+       target.closest("button") ||
+       target.closest("a") ||
+       target.closest('[role="button"]') ||
+       target.closest('[data-radix-collection-item]')
+     ) {
+       return;
+     }
+     if (!showFullComments) {
+       navigate(`/post/${log.id}`);
+     }
+   };
+ 
   return (
-    <article className="log-card border-b border-border p-4 animate-fade-in">
+     <article 
+       className={cn(
+         "log-card border-b border-border p-4 animate-fade-in",
+         !showFullComments && "cursor-pointer hover:bg-muted/30 transition-colors"
+       )}
+       onClick={handleCardClick}
+     >
       <div className="flex gap-3">
         <Link to={`/profile/${log.profiles?.username}`}>
           <Avatar className="w-10 h-10 flex-shrink-0">
@@ -244,8 +269,8 @@ export function LogCard({ log, onUpdate }: LogCardProps) {
             </DropdownMenu>
           </div>
 
-          {showComments && (
-            <CommentsSection logId={log.id} commentsLocked={log.comments_locked} />
+         {showComments && !showFullComments && (
+           <CommentsSection logId={log.id} commentsLocked={log.comments_locked} showAll={false} />
           )}
         </div>
       </div>

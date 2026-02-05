@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+ import { Profile } from "@/types";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+   needsProfileCompletion: boolean;
   signUp: (email: string, password: string, username: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -17,6 +19,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+   const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
+ 
+   const checkProfileCompletion = async (userId: string) => {
+     const { data } = await supabase
+       .from("profiles")
+       .select("profile_completed")
+       .eq("user_id", userId)
+       .single();
+     setNeedsProfileCompletion(data?.profile_completed === false);
+   };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -25,6 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+         if (session?.user) {
+           // Defer to avoid blocking
+           setTimeout(() => checkProfileCompletion(session.user.id), 0);
+         } else {
+           setNeedsProfileCompletion(false);
+         }
       }
     );
 
@@ -33,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+       if (session?.user) {
+         checkProfileCompletion(session.user.id);
+       }
     });
 
     return () => subscription.unsubscribe();
@@ -70,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+     <AuthContext.Provider value={{ user, session, loading, needsProfileCompletion, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

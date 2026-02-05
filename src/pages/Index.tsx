@@ -9,9 +9,13 @@ import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+ import { PullToRefresh } from "@/components/PullToRefresh";
+ import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Index() {
   const { loading: authLoading } = useAuth();
+   const isMobile = useIsMobile();
   const [feedMode, setFeedMode] = useState<FeedMode>("suggested");
   
   const { 
@@ -22,8 +26,16 @@ export default function Index() {
     fetchNextPage,
     invalidateFeed,
     addOptimisticLog,
+     refetch,
   } = useFeedQuery(feedMode);
 
+   // Pull to refresh (mobile only)
+   const { containerRef, pullDistance, isRefreshing } = usePullToRefresh({
+     onRefresh: async () => {
+       await refetch();
+     },
+   });
+ 
   // Scroll restoration
   useScrollRestoration("feed");
 
@@ -43,9 +55,12 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen">
+     <div className="min-h-screen" ref={isMobile ? containerRef : undefined}>
       <Header />
       
+       {/* Pull to refresh indicator */}
+       {isMobile && <PullToRefresh pullDistance={pullDistance} isRefreshing={isRefreshing} />}
+ 
       <main className="container max-w-2xl py-6">
         {/* Create log form */}
         <div className="mb-6">
