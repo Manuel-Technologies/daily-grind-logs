@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +7,7 @@ import { Log } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Repeat2, MoreHorizontal, Pencil, Flag } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, MoreHorizontal, Pencil, Flag, Eye, Share2, Link as LinkIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +21,6 @@ import { EditLogDialog } from "./EditLogDialog";
 import { ReportDialog } from "./ReportDialog";
 import { ImageModal } from "./ImageModal";
 import { RichContent } from "./RichContent";
- import { useNavigate } from "react-router-dom";
 
 interface LogCardProps {
   log: Log;
@@ -38,6 +37,7 @@ interface LogCardProps {
   const [showImageModal, setShowImageModal] = useState(false);
   const [likesCount, setLikesCount] = useState(log.likes_count || 0);
   const [relogsCount, setRelogsCount] = useState(log.relogs_count || 0);
+  const [viewsCount] = useState(log.views_count || 0);
   const [hasLiked, setHasLiked] = useState(log.user_has_liked || false);
   const [hasRelogged, setHasRelogged] = useState(log.user_has_relogged || false);
   const [likeAnimating, setLikeAnimating] = useState(false);
@@ -120,22 +120,53 @@ interface LogCardProps {
     }
   };
 
-   const handleCardClick = (e: React.MouseEvent) => {
-     // Don't navigate if clicking on interactive elements
-     const target = e.target as HTMLElement;
-     if (
-       target.closest("button") ||
-       target.closest("a") ||
-       target.closest('[role="button"]') ||
-       target.closest('[data-radix-collection-item]')
-     ) {
-       return;
-     }
-     if (!showFullComments) {
-       navigate(`/post/${log.id}`);
-     }
-   };
- 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest("a") ||
+      target.closest('[role="button"]') ||
+      target.closest('[data-radix-collection-item]')
+    ) {
+      return;
+    }
+    if (!showFullComments) {
+      navigate(`/post/${log.id}`);
+    }
+  };
+
+  const getPostUrl = () => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/post/${log.id}`;
+  };
+
+  const handleShare = async () => {
+    const url = getPostUrl();
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by @${log.profiles?.username}`,
+          text: log.content.slice(0, 100) + (log.content.length > 100 ? '...' : ''),
+          url,
+        });
+      } catch (err) {
+        // User cancelled or share failed, fall back to copy
+        if ((err as Error).name !== 'AbortError') {
+          copyToClipboard(url);
+        }
+      }
+    } else {
+      copyToClipboard(url);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Link copied to clipboard!");
+  };
+
   return (
      <article 
        className={cn(
@@ -196,7 +227,7 @@ interface LogCardProps {
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-6 mt-3 -ml-2">
+          <div className="flex items-center gap-4 mt-3 -ml-2">
             <button
               onClick={() => setShowComments(!showComments)}
               className="action-button action-button--comment text-sm"
@@ -228,6 +259,19 @@ interface LogCardProps {
                 )}
               />
               <span>{likesCount}</span>
+            </button>
+
+            <div className="flex items-center gap-1 text-muted-foreground text-sm px-2">
+              <Eye className="w-4 h-4" />
+              <span>{viewsCount}</span>
+            </div>
+
+            <button
+              onClick={handleShare}
+              className="action-button text-sm text-muted-foreground hover:text-primary"
+              title="Share post"
+            >
+              <Share2 className="w-4 h-4" />
             </button>
 
             <DropdownMenu>

@@ -90,16 +90,18 @@ async function fetchLogsPage(
   // Batch fetch counts for all logs in this page
   const logIds = logsData.map(log => log.id);
   
-  const [likesRes, commentsRes, relogsRes] = await Promise.all([
+  const [likesRes, commentsRes, relogsRes, viewsRes] = await Promise.all([
     supabase.from("likes").select("log_id").in("log_id", logIds),
     supabase.from("comments").select("log_id").in("log_id", logIds),
     supabase.from("relogs").select("log_id").in("log_id", logIds),
+    supabase.from("post_views").select("log_id").in("log_id", logIds),
   ]);
 
   // Count occurrences for each log
   const likesCount = new Map<string, number>();
   const commentsCount = new Map<string, number>();
   const relogsCount = new Map<string, number>();
+  const viewsCount = new Map<string, number>();
 
   (likesRes.data || []).forEach(like => {
     likesCount.set(like.log_id, (likesCount.get(like.log_id) || 0) + 1);
@@ -109,6 +111,9 @@ async function fetchLogsPage(
   });
   (relogsRes.data || []).forEach(relog => {
     relogsCount.set(relog.log_id, (relogsCount.get(relog.log_id) || 0) + 1);
+  });
+  (viewsRes.data || []).forEach(view => {
+    viewsCount.set(view.log_id, (viewsCount.get(view.log_id) || 0) + 1);
   });
 
   // Check user interactions if logged in
@@ -137,6 +142,7 @@ async function fetchLogsPage(
     likes_count: likesCount.get(log.id) || 0,
     comments_count: commentsCount.get(log.id) || 0,
     relogs_count: relogsCount.get(log.id) || 0,
+    views_count: viewsCount.get(log.id) || 0,
     user_has_liked: userLikes.has(log.id),
     user_has_relogged: userRelogs.has(log.id),
   }));

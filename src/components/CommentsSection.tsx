@@ -7,10 +7,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
- import { RichContent } from "./RichContent";
- import { MentionInput } from "./MentionInput";
+import { RichContent } from "./RichContent";
+import { MentionInput } from "./MentionInput";
 
 interface CommentsSectionProps {
   logId: string;
@@ -168,8 +168,24 @@ interface CommentsSectionProps {
      }
   };
 
+  const handleShareComment = (commentId: string) => {
+    const url = `${window.location.origin}/post/${logId}#comment-${commentId}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Comment",
+        url,
+      }).catch(() => {
+        navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard!");
+      });
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
    const renderComment = (comment: CommentWithReplies, depth = 0) => (
-     <div key={comment.id} className={depth > 0 ? "ml-6 border-l border-border pl-3" : ""}>
+     <div key={comment.id} id={`comment-${comment.id}`} className={depth > 0 ? "ml-6 border-l border-border pl-3" : ""}>
        <div className="flex gap-2 py-2">
          <Link to={`/profile/${comment.profiles?.username}`}>
            <Avatar className="w-8 h-8 flex-shrink-0">
@@ -190,26 +206,37 @@ interface CommentsSectionProps {
              <span className="text-muted-foreground text-xs">
                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
              </span>
-             {user?.id === comment.user_id && (
+             <div className="ml-auto flex items-center gap-1">
                <button
-                 onClick={() => handleDelete(comment.id)}
-                 className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
+                 onClick={() => handleShareComment(comment.id)}
+                 className="text-muted-foreground hover:text-primary transition-colors p-1"
+                 title="Share comment"
                >
-                 <Trash2 className="w-3 h-3" />
+                 <Share2 className="w-3 h-3" />
                </button>
-             )}
+               {user?.id === comment.user_id && (
+                 <button
+                   onClick={() => handleDelete(comment.id)}
+                   className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                 >
+                   <Trash2 className="w-3 h-3" />
+                 </button>
+               )}
+             </div>
            </div>
            <div className="text-sm text-foreground mt-0.5">
              <RichContent content={comment.content} />
            </div>
-           {!commentsLocked && user && depth < 2 && (
-             <button
-               onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-               className="text-xs text-muted-foreground hover:text-primary mt-1"
-             >
-               Reply
-             </button>
-           )}
+           <div className="flex items-center gap-3 mt-1">
+             {!commentsLocked && user && depth < 2 && (
+               <button
+                 onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                 className="text-xs text-muted-foreground hover:text-primary"
+               >
+                 Reply
+               </button>
+             )}
+           </div>
            {replyingTo === comment.id && (
              <form onSubmit={(e) => handleReply(e, comment.id, comment.user_id)} className="mt-2">
                <MentionInput
