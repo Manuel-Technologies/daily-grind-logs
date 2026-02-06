@@ -7,7 +7,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-   needsProfileCompletion: boolean;
+  needsProfileCompletion: boolean;
+  setProfileCompleted: () => void;
   signUp: (email: string, password: string, username: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -90,8 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const setProfileCompleted = () => {
+    setNeedsProfileCompletion(false);
+  };
+
   return (
-     <AuthContext.Provider value={{ user, session, loading, needsProfileCompletion, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, needsProfileCompletion, setProfileCompleted, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

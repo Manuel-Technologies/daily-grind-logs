@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Calendar, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { FollowListDialog } from "@/components/FollowListDialog";
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
 
   const isOwnProfile = user?.id === profile?.user_id;
 
@@ -248,14 +250,20 @@ export default function ProfilePage() {
               )}
 
               <div className="flex items-center gap-4 mt-4 text-sm">
-                <div>
+                <button 
+                  onClick={() => setFollowListType("following")}
+                  className="hover:underline text-left"
+                >
                   <span className="font-semibold text-foreground">{followingCount}</span>
                   <span className="text-muted-foreground ml-1">Following</span>
-                </div>
-                <div>
+                </button>
+                <button 
+                  onClick={() => setFollowListType("followers")}
+                  className="hover:underline text-left"
+                >
                   <span className="font-semibold text-foreground">{followersCount}</span>
                   <span className="text-muted-foreground ml-1">Followers</span>
-                </div>
+                </button>
               </div>
 
               <div className="flex items-center gap-1 mt-3 text-sm text-muted-foreground">
@@ -284,6 +292,17 @@ export default function ProfilePage() {
           )}
         </div>
       </main>
+
+      {/* Follower/Following Dialog */}
+      {profile && (
+        <FollowListDialog
+          open={followListType !== null}
+          onOpenChange={(open) => !open && setFollowListType(null)}
+          userId={profile.user_id}
+          type={followListType || "followers"}
+          username={profile.username}
+        />
+      )}
     </div>
   );
 }
