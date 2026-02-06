@@ -24,6 +24,7 @@ export interface Log {
   likes_count?: number;
   comments_count?: number;
   relogs_count?: number;
+  views_count?: number;
   user_has_liked?: boolean;
   user_has_relogged?: boolean;
   is_relog?: boolean;
