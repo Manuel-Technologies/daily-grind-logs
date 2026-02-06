@@ -24,8 +24,8 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 // Protected route wrapper
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+function ProtectedRoute({ children, skipProfileCheck = false }: { children: React.ReactNode; skipProfileCheck?: boolean }) {
+  const { user, loading, needsProfileCompletion } = useAuth();
 
   if (loading) {
     return (
@@ -37,6 +37,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <Navigate to="/landing" replace />;
+  }
+
+  // Redirect to complete profile if needed (but not on the complete-profile page itself)
+  if (needsProfileCompletion && !skipProfileCheck) {
+    return <Navigate to="/complete-profile" replace />;
   }
 
   return <>{children}</>;
@@ -74,7 +79,7 @@ function AppRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
        <Route path="/post/:logId" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
-       <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+       <Route path="/complete-profile" element={<ProtectedRoute skipProfileCheck><CompleteProfile /></ProtectedRoute>} />
       
       {/* Admin routes */}
       <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
