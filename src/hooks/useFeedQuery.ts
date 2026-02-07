@@ -192,8 +192,10 @@ export function useFeedQuery(mode: FeedMode) {
     queryFn: ({ pageParam }) => fetchLogsPage(mode, user?.id || null, pageParam),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    gcTime: 1000 * 60 * 10, // 10 minutes cache
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 1000 * 60 * 5, // 5 minutes cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Flatten all pages into a single logs array

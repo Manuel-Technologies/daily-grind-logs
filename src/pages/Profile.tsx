@@ -232,10 +232,11 @@ export default function ProfilePage() {
                     onClick={handleFollow}
                     disabled={followLoading}
                     variant={isFollowing ? "outline" : "default"}
-                    className={isFollowing ? "border-border" : "bg-primary hover:bg-primary-hover text-primary-foreground"}
+                    size="sm"
+                    className={isFollowing ? "border-border h-8 px-3 text-sm" : "bg-primary hover:bg-primary-hover text-primary-foreground h-8 px-3 text-sm"}
                   >
                     {followLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3 h-3 animate-spin" />
                     ) : isFollowing ? (
                       "Following"
                     ) : (
