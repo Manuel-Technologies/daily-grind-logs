@@ -5,10 +5,6 @@ interface RichContentProps {
   content: string;
 }
 
-// Regex patterns
-const URL_REGEX = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
-const MENTION_REGEX = /@([a-zA-Z0-9_]+)/g;
-
 interface ContentPart {
   type: "text" | "url" | "mention";
   value: string;
@@ -17,50 +13,66 @@ interface ContentPart {
 
 function parseContent(content: string): ContentPart[] {
   const parts: ContentPart[] = [];
-  let lastIndex = 0;
-
-  // Combined regex for both URLs and mentions
-  const combinedRegex = new RegExp(
-    `(${URL_REGEX.source})|(${MENTION_REGEX.source})`,
-    "g"
-  );
-
-  let match;
-  while ((match = combinedRegex.exec(content)) !== null) {
-    // Add text before this match
-    if (match.index > lastIndex) {
-      parts.push({
-        type: "text",
-        value: content.slice(lastIndex, match.index),
-      });
+  
+  // Process content character by character to handle overlapping patterns
+  let remaining = content;
+  let currentIndex = 0;
+  
+  while (remaining.length > 0) {
+    // Find the earliest match of either URL or mention
+    const urlMatch = remaining.match(/^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/);
+    const mentionMatch = remaining.match(/^@([a-zA-Z0-9_]+)/);
+    
+    // Find position of next URL or mention
+    const nextUrlPos = remaining.search(/https?:\/\/[^\s<]+[^<.,:;"')\]\s]/);
+    const nextMentionPos = remaining.search(/@[a-zA-Z0-9_]+/);
+    
+    // Determine which comes first
+    let firstMatchPos = -1;
+    let matchType: "url" | "mention" | null = null;
+    
+    if (nextUrlPos !== -1 && (nextMentionPos === -1 || nextUrlPos < nextMentionPos)) {
+      firstMatchPos = nextUrlPos;
+      matchType = "url";
+    } else if (nextMentionPos !== -1) {
+      firstMatchPos = nextMentionPos;
+      matchType = "mention";
     }
-
-    if (match[1]) {
-      // URL match
-      parts.push({
-        type: "url",
-        value: match[1],
-      });
-    } else if (match[2]) {
-      // Mention match - match[3] is the username without @
-      parts.push({
-        type: "mention",
-        value: match[2],
-        username: match[3],
-      });
+    
+    if (firstMatchPos === -1) {
+      // No more matches, add remaining as text
+      if (remaining.length > 0) {
+        parts.push({ type: "text", value: remaining });
+      }
+      break;
     }
-
-    lastIndex = match.index + match[0].length;
+    
+    // Add text before the match
+    if (firstMatchPos > 0) {
+      parts.push({ type: "text", value: remaining.slice(0, firstMatchPos) });
+      remaining = remaining.slice(firstMatchPos);
+    }
+    
+    // Now extract the actual match from the start
+    if (matchType === "url") {
+      const match = remaining.match(/^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/);
+      if (match) {
+        parts.push({ type: "url", value: match[1] });
+        remaining = remaining.slice(match[0].length);
+      }
+    } else if (matchType === "mention") {
+      const match = remaining.match(/^@([a-zA-Z0-9_]+)/);
+      if (match) {
+        parts.push({ 
+          type: "mention", 
+          value: match[0], 
+          username: match[1] 
+        });
+        remaining = remaining.slice(match[0].length);
+      }
+    }
   }
-
-  // Add remaining text
-  if (lastIndex < content.length) {
-    parts.push({
-      type: "text",
-      value: content.slice(lastIndex),
-    });
-  }
-
+  
   return parts;
 }
 
