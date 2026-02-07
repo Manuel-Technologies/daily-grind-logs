@@ -227,90 +227,94 @@ interface LogCardProps {
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-4 mt-3 -ml-2">
-            <button
-              onClick={() => setShowComments(!showComments)}
-              className="action-button action-button--comment text-sm"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>{log.comments_count || 0}</span>
-            </button>
+          <div className="flex items-center justify-between mt-3 -ml-2">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowComments(!showComments)}
+                className="action-button action-button--comment text-sm"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>{log.comments_count || 0}</span>
+              </button>
 
-            <button
-              onClick={handleRelog}
-              className={cn("action-button action-button--relog text-sm", isOwnLog && "opacity-50 cursor-not-allowed")}
-              data-active={hasRelogged}
-              disabled={isOwnLog}
-            >
-              <Repeat2 className="w-4 h-4" />
-              <span>{relogsCount}</span>
-            </button>
+              <button
+                onClick={handleRelog}
+                className={cn("action-button action-button--relog text-sm", isOwnLog && "opacity-50 cursor-not-allowed")}
+                data-active={hasRelogged}
+                disabled={isOwnLog}
+              >
+                <Repeat2 className="w-4 h-4" />
+                <span>{relogsCount}</span>
+              </button>
 
-            <button
-              onClick={handleLike}
-              className="action-button action-button--like text-sm"
-              data-active={hasLiked}
-            >
-              <Heart
-                className={cn(
-                  "w-4 h-4 transition-all",
-                  hasLiked && "fill-current",
-                  likeAnimating && "animate-like"
-                )}
-              />
-              <span>{likesCount}</span>
-            </button>
+              <button
+                onClick={handleLike}
+                className="action-button action-button--like text-sm"
+                data-active={hasLiked}
+              >
+                <Heart
+                  className={cn(
+                    "w-4 h-4 transition-all",
+                    hasLiked && "fill-current",
+                    likeAnimating && "animate-like"
+                  )}
+                />
+                <span>{likesCount}</span>
+              </button>
 
-            <div className="flex items-center gap-1 text-muted-foreground text-sm px-2">
-              <Eye className="w-4 h-4" />
-              <span>{viewsCount}</span>
+              <div className="flex items-center gap-1 text-muted-foreground text-sm px-2">
+                <Eye className="w-4 h-4" />
+                <span>{viewsCount}</span>
+              </div>
             </div>
 
-            <button
-              onClick={handleShare}
-              className="action-button text-sm text-muted-foreground hover:text-primary"
-              title="Share post"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={handleShare}
+                className="action-button text-sm text-muted-foreground hover:text-primary"
+                title="Share post"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover border-border">
-                {isOwnLog && canEdit && (
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={() => setShowEditDialog(true)}
-                  >
-                    Edit
-                  </DropdownMenuItem>
-                )}
-                {isOwnLog && (
-                  <DropdownMenuItem
-                    onClick={handleDelete}
-                    className="cursor-pointer text-destructive focus:text-destructive"
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                )}
-                {!isOwnLog && (
-                  <>
-                    {isOwnLog && <DropdownMenuSeparator />}
-                    <DropdownMenuItem
-                      onClick={() => setShowReportDialog(true)}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover border-border">
+                  {isOwnLog && canEdit && (
+                    <DropdownMenuItem 
                       className="cursor-pointer"
+                      onClick={() => setShowEditDialog(true)}
                     >
-                      <Flag className="w-4 h-4 mr-2" />
-                      Report
+                      Edit
                     </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  )}
+                  {isOwnLog && (
+                    <DropdownMenuItem
+                      onClick={handleDelete}
+                      className="cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                  {!isOwnLog && (
+                    <>
+                      {isOwnLog && <DropdownMenuSeparator />}
+                      <DropdownMenuItem
+                        onClick={() => setShowReportDialog(true)}
+                        className="cursor-pointer"
+                      >
+                        <Flag className="w-4 h-4 mr-2" />
+                        Report
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
          {showComments && !showFullComments && (
