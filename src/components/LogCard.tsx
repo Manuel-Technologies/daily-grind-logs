@@ -148,7 +148,6 @@ interface LogCardProps {
       try {
         await navigator.share({
           title: `Post by @${log.profiles?.username}`,
-          text: log.content.slice(0, 100) + (log.content.length > 100 ? '...' : ''),
           url,
         });
       } catch (err) {

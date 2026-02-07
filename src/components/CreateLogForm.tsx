@@ -89,6 +89,13 @@ export function CreateLogForm({ onLogCreated, onOptimisticAdd }: CreateLogFormPr
 
     const trimmedContent = content.trim();
     
+    // Validate content length (max 50,000 characters for long articles)
+    const MAX_CONTENT_LENGTH = 50000;
+    if (trimmedContent.length > MAX_CONTENT_LENGTH) {
+      toast.error(`Content is too long. Maximum ${MAX_CONTENT_LENGTH.toLocaleString()} characters allowed.`);
+      return;
+    }
+    
     // Create optimistic log immediately
     const optimisticId = `optimistic-${Date.now()}`;
     const optimisticLog: Log = {
