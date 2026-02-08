@@ -94,7 +94,7 @@ async function fetchLogsPage(
     supabase.from("likes").select("log_id").in("log_id", logIds),
     supabase.from("comments").select("log_id").in("log_id", logIds),
     supabase.from("relogs").select("log_id").in("log_id", logIds),
-    supabase.from("post_views").select("log_id").in("log_id", logIds),
+    supabase.from("post_views").select("log_id, viewer_id").in("log_id", logIds),
   ]);
 
   // Count occurrences for each log
@@ -112,8 +112,19 @@ async function fetchLogsPage(
   (relogsRes.data || []).forEach(relog => {
     relogsCount.set(relog.log_id, (relogsCount.get(relog.log_id) || 0) + 1);
   });
+  
+  // Count unique views per log (deduplicate by viewer_id)
+  const viewsByLog = new Map<string, Set<string>>();
   (viewsRes.data || []).forEach(view => {
-    viewsCount.set(view.log_id, (viewsCount.get(view.log_id) || 0) + 1);
+    if (!viewsByLog.has(view.log_id)) {
+      viewsByLog.set(view.log_id, new Set());
+    }
+    // Use viewer_id if available, otherwise count as one anonymous view
+    const viewerKey = view.viewer_id || 'anon';
+    viewsByLog.get(view.log_id)!.add(viewerKey);
+  });
+  viewsByLog.forEach((viewers, logId) => {
+    viewsCount.set(logId, viewers.size);
   });
 
   // Check user interactions if logged in

@@ -25,16 +25,17 @@ import { RichContent } from "./RichContent";
 interface LogCardProps {
   log: Log;
   onUpdate: () => void;
-   showFullComments?: boolean;
+  showFullComments?: boolean;
 }
 
- export function LogCard({ log, onUpdate, showFullComments = false }: LogCardProps) {
+export function LogCard({ log, onUpdate, showFullComments = false }: LogCardProps) {
   const { user } = useAuth();
    const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [likesCount, setLikesCount] = useState(log.likes_count || 0);
   const [relogsCount, setRelogsCount] = useState(log.relogs_count || 0);
   const [viewsCount] = useState(log.views_count || 0);
@@ -214,16 +215,52 @@ interface LogCardProps {
             <RichContent content={log.content} />
           </div>
 
-          {log.image_url && (
+          {/* Images - support multiple */}
+          {(log.image_urls && log.image_urls.length > 0) || log.image_url ? (
             <div className="mt-3">
-              <img
-                src={log.image_url}
-                alt="Log attachment"
-                className="rounded-xl max-h-96 object-cover border border-border cursor-pointer hover:opacity-95 transition-opacity"
-                onClick={() => setShowImageModal(true)}
-              />
+              {log.image_urls && log.image_urls.length > 1 ? (
+                <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden border border-border">
+                  {log.image_urls.slice(0, 4).map((url, index) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        "relative cursor-pointer hover:opacity-95 transition-opacity",
+                        log.image_urls!.length === 3 && index === 0 && "row-span-2"
+                      )}
+                      onClick={() => {
+                        setSelectedImageIndex(index);
+                        setShowImageModal(true);
+                      }}
+                    >
+                      <img
+                        src={url}
+                        alt={`Attachment ${index + 1}`}
+                        className={cn(
+                          "w-full object-cover",
+                          log.image_urls!.length === 3 && index === 0 ? "h-full" : "h-48"
+                        )}
+                      />
+                      {index === 3 && log.image_urls!.length > 4 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xl font-semibold">
+                          +{log.image_urls!.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <img
+                  src={log.image_urls?.[0] || log.image_url!}
+                  alt="Log attachment"
+                  className="rounded-xl max-h-96 object-cover border border-border cursor-pointer hover:opacity-95 transition-opacity"
+                  onClick={() => {
+                    setSelectedImageIndex(0);
+                    setShowImageModal(true);
+                  }}
+                />
+              )}
             </div>
-          )}
+          ) : null}
 
           {/* Actions */}
           <div className="flex items-center justify-between mt-3 -ml-2">
@@ -338,6 +375,8 @@ interface LogCardProps {
 
       <ImageModal
         imageUrl={log.image_url}
+        imageUrls={log.image_urls}
+        initialIndex={selectedImageIndex}
         open={showImageModal}
         onOpenChange={setShowImageModal}
       />

@@ -17,16 +17,21 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true);
   const hasTrackedView = useRef(false);
 
-  // Track view on mount
+  // Track view on mount - with deduplication via unique constraint
   useEffect(() => {
     if (!logId || hasTrackedView.current) return;
     
     const trackView = async () => {
       hasTrackedView.current = true;
-      await supabase.from("post_views").insert({
-        log_id: logId,
-        viewer_id: user?.id || null,
-      }).then(() => {});
+      // Use upsert-like behavior - the unique constraint will prevent duplicates
+      try {
+        await supabase.from("post_views").insert({
+          log_id: logId,
+          viewer_id: user?.id || null,
+        });
+      } catch {
+        // Ignore duplicate errors - view already tracked
+      }
     };
     
     trackView();
@@ -74,7 +79,7 @@ export default function PostDetail() {
         likes_count: likesRes.count || 0,
         comments_count: commentsRes.count || 0,
         relogs_count: relogsRes.count || 0,
-        views_count: (viewsRes.count || 0) + 1, // Include current view
+        views_count: viewsRes.count || 0,
         user_has_liked: userHasLiked,
         user_has_relogged: userHasRelogged,
       });

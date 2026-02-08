@@ -14,6 +14,7 @@ export interface Log {
   user_id: string;
   content: string;
   image_url: string | null;
+  image_urls?: string[];
   created_at: string;
   updated_at: string;
   edited_at: string | null;
